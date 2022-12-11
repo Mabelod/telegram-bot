@@ -15,8 +15,7 @@ public class NotificationTask {
     private String lastName;
     private LocalDateTime dateOfDispatch;
 
-    public NotificationTask(Long id, Long idChat, String notification, String login, String firstName, String lastName, LocalDateTime dataOfDispatch) {
-        this.id = id;
+    public NotificationTask(Long idChat, String notification, String login, String firstName, String lastName, LocalDateTime dataOfDispatch) {
         this.idChat = idChat;
         this.notification = notification;
         this.login = login;

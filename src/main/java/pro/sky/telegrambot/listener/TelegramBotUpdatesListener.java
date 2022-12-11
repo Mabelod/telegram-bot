@@ -26,18 +26,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
     private NotificationTaskRepository notificationTaskRepository;
-    private long chatId;
-    private String receivedMessage;
-    private String username;
-    private String firstName;
-    private String lastName;
-
-
-    public TelegramBotUpdatesListener(NotificationTaskRepository notificationTaskRepository) {
-        this.notificationTaskRepository = notificationTaskRepository;
-    }
-    @Autowired
+    private String parse = "([0-9.:\\s]{16})(\\s)([\\W+]+)";
     private TelegramBot telegramBot;
+
+    public TelegramBotUpdatesListener(NotificationTaskRepository notificationTaskRepository, TelegramBot telegramBot) {
+        this.notificationTaskRepository = notificationTaskRepository;
+        this.telegramBot = telegramBot;
+    }
 
     @PostConstruct
     public void init() {
@@ -49,19 +44,19 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         updates.forEach(update -> {
 
             logger.info("Processing update: {}", update);
-            chatId = update.message().chat().id();
-            receivedMessage = update.message().text();
-            username = update.message().chat().username();
-            firstName = update.message().chat().firstName();
-            lastName = update.message().chat().lastName();
+            long chatId = update.message().chat().id();
+            String receivedMessage = update.message().text();
+            String username = update.message().chat().username();
+            String firstName = update.message().chat().firstName();
+            String lastName = update.message().chat().lastName();
 
             if (receivedMessage.equals("/start")) {
                 mailing(chatId,
                         "Данный бот создает напоминание на выбранную дату." +
                         "Введите сообщение в формате дата + напоминание." +
                         "Например: 01.01.2022 20:00 Сделать домашнюю работу");
-            } else if (receivedMessage.matches("([0-9.:\\s]{16})(\\s)([\\W+]+)") ) {
-                parsing(receivedMessage);
+            } else if (receivedMessage.matches(parse) ) {
+                parsing(receivedMessage,chatId, username, firstName, lastName);
             } else {
                 mailing(chatId, "Введите данные согластно примеру.");
             }
@@ -83,9 +78,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         SendResponse response = telegramBot.execute(message);
     }
 
-    private void parsing(String receivedMessage) {
+    private void parsing(String receivedMessage, long chatId, String username, String firstName, String lastName ) {
         logger.info("Парсинг");
-        Pattern pattern = Pattern.compile("([0-9.:\\s]{16})(\\s)([\\W+]+)");
+        Pattern pattern = Pattern.compile(parse);
         Matcher matcher = pattern.matcher(receivedMessage);
         if (matcher.matches()) {
             String date = matcher.group(1);
@@ -98,7 +93,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 if (yearOfNotification1 < today1) {
                     mailing(chatId, "Введите дату предстоящего события");
                 } else {
-                    NotificationTask memo = new NotificationTask(1L,
+                    NotificationTask memo = new NotificationTask(
                             chatId,
                             item,
                             username,
