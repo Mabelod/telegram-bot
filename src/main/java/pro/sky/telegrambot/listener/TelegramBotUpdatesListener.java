@@ -27,12 +27,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
     private NotificationTaskRepository notificationTaskRepository;
     private String parse = "([0-9.:\\s]{16})(\\s)([\\W+]+)";
-
-    public TelegramBotUpdatesListener(NotificationTaskRepository notificationTaskRepository) {
-        this.notificationTaskRepository = notificationTaskRepository;
-    }
-    @Autowired
     private TelegramBot telegramBot;
+
+    public TelegramBotUpdatesListener(NotificationTaskRepository notificationTaskRepository, TelegramBot telegramBot) {
+        this.notificationTaskRepository = notificationTaskRepository;
+        this.telegramBot = telegramBot;
+    }
 
     @PostConstruct
     public void init() {
